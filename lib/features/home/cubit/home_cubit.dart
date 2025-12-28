@@ -3,21 +3,21 @@ import 'dart:math';
 import 'package:bloc/bloc.dart';
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:equatable/equatable.dart';
-import 'package:mini_chat_ai_app/core/cache/chats_cache_manager.dart';
+import 'package:mini_chat_ai_app/features/chat/data/model/chat_message_model.dart';
 import 'package:mini_chat_ai_app/features/home/data/model/user_model.dart';
+import 'package:mini_chat_ai_app/features/home/data/repo/home_repo.dart';
 
 part 'home_cubit.g.dart';
 part 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
-  // final ParkingRepo parkingRepo;
+  final HomeRepo homeRepo;
 
-  HomeCubit() : super(HomeState());
+  HomeCubit(this.homeRepo) : super(HomeState());
 
   Future<void> loadAllAndChatHistoryUsers() async {
-    final List<UserModel> allUsers = ChatCacheManager.loadUsers();
-    final List<UserModel> chatHistoryUser =
-        ChatCacheManager.loadUsersWithChats();
+    final List<UserModel> allUsers = await homeRepo.getAllUsers();
+    final List<UserModel> chatHistoryUser = await homeRepo.loadUserWithChats();
     if (allUsers.isNotEmpty) {
       if (chatHistoryUser.isNotEmpty) {
         emit(state.copyWith(chatHistoryUsers: chatHistoryUser));
@@ -30,7 +30,7 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
-  void addUser(String name) {
+  Future<void> addUser(String name) async {
     final trimmed = name.trim();
     if (trimmed.isEmpty) return;
 
@@ -41,14 +41,18 @@ class HomeCubit extends Cubit<HomeState> {
       lastSeenValue: Random().nextInt(59) + 1,
     );
 
-    ChatCacheManager.saveUser(user);
+    await homeRepo.saveUser(user);
 
     emit(
       state.copyWith(
-        allUsers: ChatCacheManager.loadUsers(),
+        allUsers: await homeRepo.getAllUsers(),
         userAddedMessage: "User added: $trimmed",
       ),
     );
+  }
+
+  List<ChatMessage> loadChatForUser(String userId) {
+    return homeRepo.loadChatForUser(userId);
   }
 
   UserStatus _randomStatus() {

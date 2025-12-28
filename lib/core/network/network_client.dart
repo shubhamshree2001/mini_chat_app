@@ -6,10 +6,7 @@ class NetworkClientBasicHttp {
   final http.Client client;
   final String baseUrl;
 
-  NetworkClientBasicHttp({
-    required this.client,
-    required this.baseUrl,
-  });
+  NetworkClientBasicHttp({required this.client, required this.baseUrl});
 
   Map<String, String> buildHeaders() {
     final Map<String, String> headers = {

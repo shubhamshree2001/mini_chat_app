@@ -149,10 +149,7 @@ class _ChatScreenState extends State<ChatScreen> {
           if (isSender)
             const Padding(
               padding: EdgeInsets.only(left: 8),
-              child: CircleAvatar(
-                radius: 14,
-                child: Text("Y"),
-              ),
+              child: CircleAvatar(radius: 14, child: Text("Y")),
             ),
         ],
       ),

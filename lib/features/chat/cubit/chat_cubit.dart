@@ -1,26 +1,22 @@
-import 'dart:convert';
-
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:mini_chat_ai_app/core/cache/chats_cache_manager.dart';
 import 'package:mini_chat_ai_app/features/chat/data/model/chat_message_model.dart';
+import 'package:mini_chat_ai_app/features/chat/data/repo/chat_repo.dart';
 import 'package:mini_chat_ai_app/features/home/data/model/user_model.dart';
 
 part 'chat_cubit.g.dart';
 part 'chat_state.dart';
 
 class ChatCubit extends Cubit<ChatState> {
-  // final ParkingRepo parkingRepo;
+  final ChatRepo chatRepo;
 
-  ChatCubit() : super(ChatState());
-
+  ChatCubit(this.chatRepo) : super(ChatState());
 
   /// Called when ChatScreen opens
   void loadChat(UserModel user) {
-    final messages = ChatCacheManager.loadChatsForUser(user.id);
+    final messages = chatRepo.loadChatForUser(user.id);
     emit(state.copyWith(selectedUser: user, allMessages: messages));
   }
 
@@ -37,20 +33,16 @@ class ChatCubit extends Cubit<ChatState> {
     );
 
     //save sender message
-    ChatCacheManager.saveMessage(user.id, senderMessage);
-
+   // chatRepo.saveMessage(user.id, senderMessage);
+    final updatedMessages = List<ChatMessage>.from(state.allMessages)
+      ..add(senderMessage);
     // Emit updated messages
-    emit(
-      state.copyWith(
-        allMessages: ChatCacheManager.loadChatsForUser(user.id),
-        isLoading: true,
-        error: null,
-      ),
-    );
+    emit(state.copyWith(allMessages: updatedMessages, error: null));
+    //allMessages: chatRepo.loadChatsForUser(user.id),
 
     try {
       //Fetch receiver reply
-      final reply = await fetchReply();
+      final reply = await chatRepo.getMessage();
 
       final receiverMessage = ChatMessage(
         id: DateTime.now().microsecondsSinceEpoch.toString(),
@@ -60,29 +52,14 @@ class ChatCubit extends Cubit<ChatState> {
       );
 
       //save receiver message
-      ChatCacheManager.saveMessage(user.id, receiverMessage);
+      final updatedMessages1 = List<ChatMessage>.from(state.allMessages)
+        ..add(receiverMessage);
 
       // Emit final state
-      emit(
-        state.copyWith(
-          allMessages: ChatCacheManager.loadChatsForUser(user.id),
-          isLoading: false,
-        ),
-      );
+      emit(state.copyWith(allMessages: updatedMessages1));
     } catch (e) {
-      emit(
-        state.copyWith(isLoading: false, error: 'Failed to receive message'),
-      );
+      emit(state.copyWith(error: 'Failed to receive message'));
     }
-  }
-
-
-
-  Future<String> fetchReply() async {
-    final res = await http.get(
-      Uri.parse("https://jsonplaceholder.typicode.com/comments/1"),
-    );
-    return jsonDecode(res.body)['body'];
   }
 
   String formatTime(DateTime time) {

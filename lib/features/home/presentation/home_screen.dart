@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mini_chat_ai_app/core/cache/chats_cache_manager.dart';
 import 'package:mini_chat_ai_app/core/navigation/app_routes.dart';
 import 'package:mini_chat_ai_app/features/chat/cubit/chat_cubit.dart';
 import 'package:mini_chat_ai_app/features/home/cubit/home_cubit.dart';
@@ -16,11 +15,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
-
   final ScrollController usersScroll = ScrollController();
   final ScrollController historyScroll = ScrollController();
   late TabController _tabController;
-
 
   bool _showTabs = true;
   int _currentTab = 0;
@@ -64,8 +61,6 @@ class _HomeScreenState extends State<HomeScreen>
     historyScroll.dispose();
     super.dispose();
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -158,6 +153,7 @@ class _HomeScreenState extends State<HomeScreen>
                       : chatHistoryListView(
                           chatHistoryUsers,
                           chatCubit,
+                          homeCubit,
                           context,
                         ),
                 ],
@@ -205,6 +201,7 @@ class _HomeScreenState extends State<HomeScreen>
   ListView chatHistoryListView(
     List<UserModel> chatHistoryUsers,
     ChatCubit chatCubit,
+    HomeCubit homeCubit,
     BuildContext context,
   ) {
     return ListView.builder(
@@ -212,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen>
       itemCount: chatHistoryUsers.length,
       itemBuilder: (_, i) {
         final user = chatHistoryUsers[i];
-        final chats = ChatCacheManager.loadChatsForUser(user.id);
+        final chats = homeCubit.loadChatForUser(user.id);
         final last = chats.last;
 
         return ListTile(
