@@ -46,12 +46,8 @@ class _SplashScreenState extends State<SplashScreen> {
       backgroundColor: Colors.white,
       body: Center(
         child: Text(
-          'My Sivi',
-          // style: context.textTheme.headlineMedium?.withAdaptiveColor(
-          //   context,
-          //   lightColor: AppColors.colorNeutral900,
-          //   darkColor: AppColors.colorNeutralDark900,
-          // ),
+          'My Sivi AI',
+          style: Theme.of(context).textTheme.headlineLarge
         ),
       ),
     );

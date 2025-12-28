@@ -18,7 +18,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      jumpToBottom();
+      _scrollToBottomOnOpen();
     });
   }
 
@@ -36,16 +36,25 @@ class _ChatScreenState extends State<ChatScreen> {
         scrollController.position.maxScrollExtent - 100;
   }
 
-  void jumpToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!scrollController.hasClients) return;
 
-      await Future.delayed(const Duration(milliseconds: 50));
+  void _scrollToBottomOnOpen() async {
+    // Wait for first frame
+    await Future.delayed(Duration.zero);
 
-      if (!scrollController.hasClients) return;
+    if (!scrollController.hasClients) return;
 
-      scrollController.jumpTo(scrollController.position.maxScrollExtent);
-    });
+    scrollController.jumpTo(
+      scrollController.position.maxScrollExtent,
+    );
+
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    if (!scrollController.hasClients) return;
+
+
+    scrollController.jumpTo(
+      scrollController.position.maxScrollExtent,
+    );
   }
 
   void scrollToBottom() {
