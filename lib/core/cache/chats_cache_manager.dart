@@ -4,7 +4,7 @@ import 'package:mini_chat_ai_app/features/home/data/model/user_model.dart';
 
 //
 // class ChatCacheManager {
-//
+//s
 //   static const String usersBoxName = 'usersBox';
 //   static const String chatsBoxName = 'chatsBox';
 //

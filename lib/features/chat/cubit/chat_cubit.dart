@@ -24,7 +24,6 @@ class ChatCubit extends Cubit<ChatState> {
     final user = state.selectedUser;
     if (user == null || text.trim().isEmpty) return;
 
-    // Create sender message
     final senderMessage = ChatMessage(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       text: text,
@@ -32,16 +31,20 @@ class ChatCubit extends Cubit<ChatState> {
       time: DateTime.now(),
     );
 
-    //save sender message
-   // chatRepo.saveMessage(user.id, senderMessage);
-    final updatedMessages = List<ChatMessage>.from(state.allMessages)
-      ..add(senderMessage);
-    // Emit updated messages
-    emit(state.copyWith(allMessages: updatedMessages, error: null));
-    //allMessages: chatRepo.loadChatsForUser(user.id),
+    final messagesAfterSender = _deduplicate([
+      ...state.allMessages,
+      senderMessage,
+    ]);
+
+    emit(
+      state.copyWith(
+        allMessages: messagesAfterSender,
+        error: null,
+      ),
+    );
+    await chatRepo.saveMessage(user.id, senderMessage);
 
     try {
-      //Fetch receiver reply
       final reply = await chatRepo.getMessage();
 
       final receiverMessage = ChatMessage(
@@ -51,12 +54,18 @@ class ChatCubit extends Cubit<ChatState> {
         time: DateTime.now(),
       );
 
-      //save receiver message
-      final updatedMessages1 = List<ChatMessage>.from(state.allMessages)
-        ..add(receiverMessage);
+      final messagesAfterReceiver = _deduplicate([
+        ...state.allMessages,
+        receiverMessage,
+      ]);
 
-      // Emit final state
-      emit(state.copyWith(allMessages: updatedMessages1));
+      emit(
+        state.copyWith(
+          allMessages: messagesAfterReceiver,
+        ),
+      );
+
+      await chatRepo.saveMessage(user.id, receiverMessage);
     } catch (e) {
       emit(state.copyWith(error: 'Failed to receive message'));
     }
@@ -64,5 +73,16 @@ class ChatCubit extends Cubit<ChatState> {
 
   String formatTime(DateTime time) {
     return DateFormat('h:mm a').format(time);
+  }
+
+  List<ChatMessage> _deduplicate(List<ChatMessage> messages) {
+    final map = <String, ChatMessage>{};
+
+    for (final msg in messages) {
+      map[msg.id] = msg;
+    }
+
+    return map.values.toList()
+      ..sort((a, b) => a.time.compareTo(b.time));
   }
 }

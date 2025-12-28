@@ -1,7 +1,13 @@
+import 'dart:convert';
+
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:http/http.dart' as http;
+import 'package:mini_chat_ai_app/core/widgets/bottomsheets/kapp_bottom_sheet.dart';
 import 'package:mini_chat_ai_app/features/chat/cubit/chat_cubit.dart';
 import 'package:mini_chat_ai_app/features/chat/data/model/chat_message_model.dart';
+import 'package:mini_chat_ai_app/features/chat/presentation/widgets/word_meaning_bottomsheet.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -36,25 +42,19 @@ class _ChatScreenState extends State<ChatScreen> {
         scrollController.position.maxScrollExtent - 100;
   }
 
-
   void _scrollToBottomOnOpen() async {
     // Wait for first frame
     await Future.delayed(Duration.zero);
 
     if (!scrollController.hasClients) return;
 
-    scrollController.jumpTo(
-      scrollController.position.maxScrollExtent,
-    );
+    scrollController.jumpTo(scrollController.position.maxScrollExtent);
 
     await Future.delayed(const Duration(milliseconds: 100));
 
     if (!scrollController.hasClients) return;
 
-
-    scrollController.jumpTo(
-      scrollController.position.maxScrollExtent,
-    );
+    scrollController.jumpTo(scrollController.position.maxScrollExtent);
   }
 
   void scrollToBottom() {
@@ -139,12 +139,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   color: isSender ? Colors.blue : Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Text(
-                  msg.text,
-                  style: TextStyle(
-                    color: isSender ? Colors.white : Colors.black,
-                  ),
-                ),
+                child: _buildTappableMessageText(context, msg.text, isSender),
               ),
               SizedBox(height: 4),
               Text(
@@ -233,4 +228,42 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
+
+  Widget _buildTappableMessageText(
+    BuildContext context,
+    String text,
+    bool isSender,
+  ) {
+    final words = text.split(RegExp(r'\s+'));
+
+    return RichText(
+      text: TextSpan(
+        children: words.map((word) {
+          final cleanWord = word.replaceAll(RegExp(r'[^\w]'), '');
+
+          return TextSpan(
+            text: '$word ',
+            style: TextStyle(
+              color: isSender ? Colors.white : Colors.black,
+              fontSize: 14,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () async {
+                if (cleanWord.isEmpty) return;
+
+                final cubit = context.read<ChatCubit>();
+
+                await cubit.fetchWordMeaning(cleanWord.toLowerCase());
+
+                kAppShowModalBottomSheet(
+                  context,
+                  const WordMeaningBottomSheet(),
+                );
+              },
+          );
+        }).toList(),
+      ),
+    );
+  }
+
 }

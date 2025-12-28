@@ -24,6 +24,12 @@ class _HomeScreenState extends State<HomeScreen>
   bool _isTabChanging = false;
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    context.read<HomeCubit>().refreshChatHistoryUser();
+  }
+
+  @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
@@ -39,6 +45,10 @@ class _HomeScreenState extends State<HomeScreen>
 
       // Restore correct tab visibility based on scroll position
       _syncTabBarVisibility();
+
+      if (_currentTab == 1) {
+        context.read<HomeCubit>().refreshChatHistoryUser();
+      }
     });
   }
 

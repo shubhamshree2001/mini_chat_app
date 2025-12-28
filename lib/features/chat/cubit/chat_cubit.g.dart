@@ -15,6 +15,8 @@ abstract class _$ChatStateCWProxy {
 
   ChatState allMessages(List<ChatMessage> allMessages);
 
+  ChatState wordMeaning(String? wordMeaning);
+
   /// Creates a new instance with the provided field values.
   /// Passing `null` to a nullable field nullifies it, while `null` for a non-nullable field is ignored. To update a single field use `ChatState(...).copyWith.fieldName(value)`.
   ///
@@ -27,6 +29,7 @@ abstract class _$ChatStateCWProxy {
     String? error,
     UserModel? selectedUser,
     List<ChatMessage> allMessages,
+    String? wordMeaning,
   });
 }
 
@@ -52,6 +55,9 @@ class _$ChatStateCWProxyImpl implements _$ChatStateCWProxy {
       call(allMessages: allMessages);
 
   @override
+  ChatState wordMeaning(String? wordMeaning) => call(wordMeaning: wordMeaning);
+
+  @override
   /// Creates a new instance with the provided field values.
   /// Passing `null` to a nullable field nullifies it, while `null` for a non-nullable field is ignored. To update a single field use `ChatState(...).copyWith.fieldName(value)`.
   ///
@@ -64,6 +70,7 @@ class _$ChatStateCWProxyImpl implements _$ChatStateCWProxy {
     Object? error = const $CopyWithPlaceholder(),
     Object? selectedUser = const $CopyWithPlaceholder(),
     Object? allMessages = const $CopyWithPlaceholder(),
+    Object? wordMeaning = const $CopyWithPlaceholder(),
   }) {
     return ChatState(
       isLoading: isLoading == const $CopyWithPlaceholder() || isLoading == null
@@ -83,6 +90,10 @@ class _$ChatStateCWProxyImpl implements _$ChatStateCWProxy {
           ? _value.allMessages
           // ignore: cast_nullable_to_non_nullable
           : allMessages as List<ChatMessage>,
+      wordMeaning: wordMeaning == const $CopyWithPlaceholder()
+          ? _value.wordMeaning
+          // ignore: cast_nullable_to_non_nullable
+          : wordMeaning as String?,
     );
   }
 }

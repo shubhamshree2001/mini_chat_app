@@ -30,6 +30,15 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
+  Future<void> refreshChatHistoryUser() async{
+    final List<UserModel> chatHistoryUser = await homeRepo.loadUserWithChats();
+    if (chatHistoryUser.isNotEmpty) {
+      emit(state.copyWith(chatHistoryUsers: chatHistoryUser));
+    } else {
+      emit(state.copyWith(chatHistoryUsers: const []));
+    }
+  }
+
   Future<void> addUser(String name) async {
     final trimmed = name.trim();
     if (trimmed.isEmpty) return;
