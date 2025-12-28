@@ -16,7 +16,11 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
+
+  final ScrollController usersScroll = ScrollController();
+  final ScrollController historyScroll = ScrollController();
   late TabController _tabController;
+
 
   bool _showTabs = true;
   int _currentTab = 0;
@@ -56,11 +60,11 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void dispose() {
     _tabController.dispose();
+    usersScroll.dispose();
+    historyScroll.dispose();
     super.dispose();
   }
 
-  final ScrollController usersScroll = ScrollController();
-  final ScrollController historyScroll = ScrollController();
 
 
   @override
@@ -134,79 +138,99 @@ class _HomeScreenState extends State<HomeScreen>
                 controller: _tabController,
                 children: [
                   // USERS TAB
-                  ListView.builder(
-                    controller: usersScroll,
-                    itemCount: users.length,
-                    itemBuilder: (_, i) {
-                      final user = users[i];
-                      return ListTile(
-                        leading: Stack(
-                          children: [
-                            CircleAvatar(child: Text(user.initial)),
-                            if (user.isOnline)
-                              const Positioned(
-                                bottom: 0,
-                                right: 0,
-                                child: CircleAvatar(
-                                  radius: 5,
-                                  backgroundColor: Colors.green,
-                                ),
-                              ),
-                          ],
-                        ),
-                        title: Text(user.name),
-                        subtitle: Text(user.statusText),
-                        onTap: () {
-                          chatCubit.loadChat(user);
-                          Navigator.pushNamed(context, Routes.chatScreen);
-                        },
-                      );
-                    },
-                  ),
+                  users.isEmpty
+                      ? const Center(
+                          child: Text(
+                            "No Users yet",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        )
+                      : useListView(users, chatCubit, context),
 
                   // CHAT HISTORY TAB
-                  if (chatHistoryUsers.isEmpty) ...[
-                    const Center(
-                      child: Text(
-                        "No chats yet",
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ),
-                  ] else ...[
-                    ListView.builder(
-                      controller: historyScroll,
-                      itemCount: chatHistoryUsers.length,
-                      itemBuilder: (_, i) {
-                        final user = chatHistoryUsers[i];
-                        final chats = ChatCacheManager.loadChatsForUser(
-                          user.id,
-                        );
-                        final last = chats.last;
-
-                        return ListTile(
-                          leading: CircleAvatar(child: Text(user.initial)),
-                          title: Text(user.name),
-                          subtitle: Text(
-                            last.text,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                  chatHistoryUsers.isEmpty
+                      ? const Center(
+                          child: Text(
+                            "No chats yet",
+                            style: TextStyle(color: Colors.grey),
                           ),
-                          trailing: Text(
-                            "${DateTime.now().difference(last.time).inMinutes} min ago",
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                          onTap: () {
-                            chatCubit.loadChat(user);
-                            Navigator.pushNamed(context, Routes.chatScreen);
-                          },
-                        );
-                      },
-                    ),
-                  ],
+                        )
+                      : chatHistoryListView(
+                          chatHistoryUsers,
+                          chatCubit,
+                          context,
+                        ),
                 ],
               ),
             ),
           ),
+        );
+      },
+    );
+  }
+
+  ListView useListView(
+    List<UserModel> users,
+    ChatCubit chatCubit,
+    BuildContext context,
+  ) {
+    return ListView.builder(
+      controller: usersScroll,
+      itemCount: users.length,
+      itemBuilder: (_, i) {
+        final user = users[i];
+        return ListTile(
+          leading: Stack(
+            children: [
+              CircleAvatar(child: Text(user.initial)),
+              if (user.isOnline)
+                const Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: CircleAvatar(radius: 5, backgroundColor: Colors.green),
+                ),
+            ],
+          ),
+          title: Text(user.name),
+          subtitle: Text(user.statusText),
+          onTap: () {
+            chatCubit.loadChat(user);
+            Navigator.pushNamed(context, Routes.chatScreen);
+          },
+        );
+      },
+    );
+  }
+
+  ListView chatHistoryListView(
+    List<UserModel> chatHistoryUsers,
+    ChatCubit chatCubit,
+    BuildContext context,
+  ) {
+    return ListView.builder(
+      controller: historyScroll,
+      itemCount: chatHistoryUsers.length,
+      itemBuilder: (_, i) {
+        final user = chatHistoryUsers[i];
+        final chats = ChatCacheManager.loadChatsForUser(user.id);
+        final last = chats.last;
+
+        return ListTile(
+          leading: CircleAvatar(child: Text(user.initial)),
+          title: Text(user.name),
+          subtitle: Text(
+            last.text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          trailing: Text(
+            "${DateTime.now().difference(last.time).inMinutes} min ago",
+            style: const TextStyle(fontSize: 12),
+          ),
+          onTap: () {
+            chatCubit.loadChat(user);
+            Navigator.pushNamed(context, Routes.chatScreen);
+          },
         );
       },
     );
@@ -271,11 +295,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget buildTab(String title) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          title,
-        ),
-      ],
+      children: [Text(title)],
     );
   }
 }
