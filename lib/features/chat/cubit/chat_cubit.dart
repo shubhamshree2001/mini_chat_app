@@ -1,3 +1,4 @@
+
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,7 +15,6 @@ class ChatCubit extends Cubit<ChatState> {
 
   ChatCubit(this.chatRepo) : super(ChatState());
 
-  /// Called when ChatScreen opens
   void loadChat(UserModel user) {
     final messages = chatRepo.loadChatForUser(user.id);
     emit(state.copyWith(selectedUser: user, allMessages: messages));
@@ -70,6 +70,8 @@ class ChatCubit extends Cubit<ChatState> {
       emit(state.copyWith(error: 'Failed to receive message'));
     }
   }
+
+
 
   String formatTime(DateTime time) {
     return DateFormat('h:mm a').format(time);
